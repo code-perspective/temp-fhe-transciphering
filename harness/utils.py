@@ -16,7 +16,7 @@ import argparse
 import json
 from datetime import datetime
 from pathlib import Path
-from params import InstanceParams, TOY, LARGE
+from params import InstanceParams, TOY, MEDIUM
 from typing import Tuple
 
 # Global variable to track the last timestamp
@@ -33,7 +33,7 @@ def parse_submission_arguments(workload: str) -> Tuple[int, InstanceParams, int,
     """
     # Parse arguments using argparse
     parser = argparse.ArgumentParser(description=workload)
-    parser.add_argument('size', type=int, choices=range(TOY, LARGE+1),
+    parser.add_argument('size', type=int, choices=range(TOY, MEDIUM+1),
                         help='Instance size (0-toy/1-small/2-medium/3-large)')
     parser.add_argument('--num_runs', type=int, default=1,
                         help='Number of times to run steps 4-9 (default: 1)')
@@ -70,6 +70,14 @@ def build_submission(script_dir: Path):
     # subprocess.run([script_dir/"get_openfhe.sh"], check=True)
     # CMake build of the submission itself
     subprocess.run([script_dir/"build_task.sh", "./submission"], check=True)
+
+class TextFormat:
+    BOLD = "\033[1m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    RED = "\033[31m"
+    RESET = "\033[0m"
 
 def log_step(step_num: int, step_name: str, start: bool = False):
     """ 
@@ -128,3 +136,20 @@ def save_run(path: Path):
     }, open(path,"w"), indent=2)
 
     print("[total latency]", f"{round(sum(_timestamps.values()), 4)}s")
+
+def run_exe_or_python(base, file_name, *args, check=True):
+    """
+        If {base}/{file_name}.py exists, run it with the current Python.
+        Otherwise, run {base}/build/{file_name} as an executable.
+    """
+    py = base / f"{file_name}.py"
+    exe = base / "build" / file_name
+
+    if py.exists():
+        cmd = ["python3", py, *args]
+    elif exe.exists():
+        cmd = [exe, *args]
+    else:
+        cmd = None
+    if cmd is not None:
+        subprocess.run(cmd, check=check)

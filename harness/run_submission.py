@@ -30,8 +30,8 @@ def main():
     # Ensure the required directories exist
     utils.ensure_directories(params.rootdir)
 
-    # Build the submission if not built already
-    utils.build_submission(params.rootdir/"scripts")
+    # # Build the submission if not built already
+    # utils.build_submission(params.rootdir/"scripts")
 
     # The harness scripts are in the 'harness' directory,
     # the executables are in the directory submission/build
@@ -55,67 +55,66 @@ def main():
     subprocess.run(cmd, check=True)
     utils.log_step(1, "Dataset generation")
 
-    # 2. Client-side: Generate AES Key
-    cmd = ["python3", harness_dir/"aes_keygen.py", str(size)]
+    # 2. Client-side: Generate AES Key and encrypt the messages using the generated key
+    cmd = ["python3", harness_dir/"aes_keygen_and_encrypt.py", str(size)]
     subprocess.run(cmd, check=True)
-    utils.log_step(2, "AES Key generation")
+    utils.log_step(2, "AES Key generation and message encryption with AES")
 
-    # 3. Client-side: Encrypt messages with AES using the generated key
-    cmd = ["python3", harness_dir/"aes_encrypt.py", str(size)]
+    # Intermediate: Test correctness of cleartext implementation
+    cmd = ["python3", harness_dir/"cleartext_impl.py", str(size)]
     subprocess.run(cmd, check=True)
-    utils.log_step(3, "Message encryption with AES")
+    utils.log_step(2, "Cleartext implementation")
 
-    # 4. Client-side: Preprocess the data using exec_dir/client_preprocess
+    # 3. Client-side: Preprocess the data using exec_dir/client_preprocess
     subprocess.run([exec_dir/"client_preprocess", str(size)], check=True)
-    utils.log_step(4, "Client side preprocessing")
+    utils.log_step(3, "Client side preprocessing")
 
-    # 5. Client-side: Generate the cryptographic keys 
+    # 4. Client-side: Generate the cryptographic keys 
     # Note: this does not use the rng seed above, it lets the implementation
     #   handle its own prg needs. It means that even if called with the same
     #   seed multiple times, the keys and ciphertexts will still be different.
     subprocess.run([exec_dir/"client_key_generation", str(size)], check=True)
-    utils.log_step(5, "FHE Key Generation")
+    utils.log_step(4, "FHE Key Generation")
 
-    # 6. Client-side: Encode and encrypt the aes key
+    # 5. Client-side: Encode and encrypt the aes key
     subprocess.run([exec_dir/"client_encode_encrypt", str(size)], check=True)
-    utils.log_step(6, "AES key encoding and encryption")
+    utils.log_step(5, "AES key encoding and encryption")
 
     # Report size of keys and encrypted data
     utils.log_size(io_dir / "public_keys", "Public and evaluation keys")
     db_size = utils.log_size(io_dir / "ciphertexts_upload", "Encrypted aes-encrypted dataset")
 
-    # 7. Server-side: Preprocess the (encrypted) dataset using exec_dir/server_preprocess_dataset
+    # 6. Server-side: Preprocess the (encrypted) dataset using exec_dir/server_preprocess_dataset
     subprocess.run(exec_dir/"server_preprocess_dataset", check=True)
-    utils.log_step(7, "(Encrypted) dataset preprocessing")    
+    utils.log_step(6, "(Encrypted) dataset preprocessing")    
 
-
-    # 8. Server side: Run aes_decryption 
+    # 7. Server side: Run aes_decryption 
     subprocess.run([exec_dir/"server_encrypted_aes_decryption", str(size)], check=True)
-    utils.log_step(8, "Encrypted aes decryption")
+    utils.log_step(7, "Encrypted aes decryption")
     utils.log_size(io_dir / "ciphertexts_download", "Encrypted results")
 
-    # 9. Server side: Run the encrypted processing run exec_dir/server_encrypted_compute
+    # 8. Server side: Run the encrypted processing run exec_dir/server_encrypted_compute
     subprocess.run([exec_dir/"server_encrypted_compute", str(size)], check=True)
-    utils.log_step(9, "Encrypted computation of mini workload")
+    utils.log_step(8, "Encrypted computation of mini workload")
     utils.log_size(io_dir / "ciphertexts_download", "Encrypted results")
 
-    # 10. Client-side: decrypt
+    # 9. Client-side: decrypt
     subprocess.run([exec_dir/"client_decrypt_decode_aes_decryption", str(size)], check=True)
-    utils.log_step(10, "Result decryption")
+    utils.log_step(9, "Result decryption")
 
-    # 11. Client-side: post-process
+    # 10. Client-side: post-process
     subprocess.run([exec_dir/"client_postprocess_aes_decryption", str(size)], check=True)
-    utils.log_step(11, "Result postprocessing")
+    utils.log_step(10, "Result postprocessing")
 
-     # 12. Client-side: decrypt
+    # 11. Client-side: decrypt
     subprocess.run([exec_dir/"client_decrypt_decode", str(size)], check=True)
-    utils.log_step(12, "Result decryption")
+    utils.log_step(11, "Result decryption")
 
-    # 13. Client-side: post-process
+    # 12. Client-side: post-process
     subprocess.run([exec_dir/"client_postprocess", str(size)], check=True)
-    utils.log_step(13, "Result postprocessing")
+    utils.log_step(12, "Result postprocessing")
 
-    # 14 Verify aes_decryption result
+    # 13. Verify aes_decryption result
     aes_expected_file = params.datadir() / "expected_aes.txt"
     aes_result_file = io_dir / "result_aes.txt"
 
@@ -126,7 +125,7 @@ def main():
     subprocess.run(["python3", harness_dir/"verify_aes_decryption.py",
             str(aes_expected_file), str(aes_result_file)], check=False)
     
-    # 15 Verify the final result
+    # 14. Verify the final result
     expected_file = params.datadir() / "expected.txt"
     result_file = io_dir / "result.txt"
 
@@ -137,7 +136,7 @@ def main():
     subprocess.run(["python3", harness_dir/"verify_result.py",
             str(expected_file), str(result_file)], check=False)
     
-    # 16. Store measurements
+    # 15. Store measurements
     run_path = params.measuredir() / f"results.json"
     run_path.parent.mkdir(parents=True, exist_ok=True)
     utils.save_run(run_path)

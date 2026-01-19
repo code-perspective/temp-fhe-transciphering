@@ -16,11 +16,10 @@ from pathlib import Path
 TOY = 0
 SMALL = 1
 MEDIUM = 2
-LARGE = 3
 
 def instance_name(size):
     """Return the string name of the instance size."""
-    if size > LARGE:
+    if size > MEDIUM:
         return "unknown"
     names = ["toy", "small", "medium", "large"]
     return names[size]
@@ -33,23 +32,17 @@ class InstanceParams:
         self.size = size
         self.rootdir = Path(rootdir) if rootdir else Path.cwd()
 
-        if size > LARGE:
+        if size > MEDIUM:
             raise ValueError("Invalid instance size")
 
-        # parameters for sizes:   toy  small   medium     large
-        q_bound =              [ 1,   10,     100,      1000]
-        db_bound =             [10, 100,    1000,   10000]
+        # parameters for sizes:   toy  small   medium
+        db_bound =                  [8,     64,    512]
 
-        self.query_bound = q_bound[size]
         self.db_bound = db_bound[size]
 
     def get_size(self):
         """Return the instance size."""
         return self.size
-
-    def get_query_bound(self):
-        """Return the dimension of the plaintext record."""
-        return self.query_bound
 
     def get_db_bound(self):
         """Return the number of records in the dataset."""

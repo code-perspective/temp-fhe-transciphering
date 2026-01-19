@@ -38,7 +38,9 @@ By default, `build_task.sh` looks for the library at this location. See more ins
 ./scripts/get_openfhe.sh
 ```
 
-## Running the "add two numbers" workload
+## Running the "AES transciphering" workload
+
+The goal of this workload is to homomorphically transcipher a number of AES blocks into FHE ciphertexts encrypting the same plaintexts. We assess the "quality" of the resulting FHE ciphertexts by evaluating two mini-workloads after the transciphering: 1. Computing the maximum between the input message parsed as 16-bit unsigned integers; and 2. Computing the inner product modulo 2^16 of the first half of the input message parsed as 16-bit unsigned integers and the second half.
 
 An example run is provided below.
 
@@ -46,10 +48,10 @@ An example run is provided below.
 $ python3 harness/run_submission.py -h
 usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--clrtxt CLRTXT] {0,1,2,3}
 
-Run the add-two-values FHE benchmark.
+Run the AES transciphering FHE benchmark.
 
 positional arguments:
-  {0,1,2,3}            Instance size (0-toy/1-small/2-medium/3-large)
+  {0,1,2,3}            Instance size (0-toy/1-small/2-medium)
 
 options:
   -h, --help           show this help message and exit
@@ -59,58 +61,7 @@ options:
 
 $ python3 ./harness/run_submission.py 2 --seed 3 --num_runs 2
 
-[harness] Running submission for medium dataset
--- The CXX compiler identification is GNU 13.1.0
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /usr/bin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- FOUND PACKAGE OpenFHE
--- OpenFHE Version: 1.3.1
--- OpenFHE installed as shared libraries: ON
--- OpenFHE include files location: /home/aandr/fhe-bench/third_party/openfhe/include/openfhe
--- OpenFHE lib files location: /home/aandr/fhe-bench/third_party/openfhe/lib
--- OpenFHE Native Backend size: 64
--- Configuring done
--- Generating done
--- Build files have been written to: /home/aandr/fhe-bench/submission/build
-[  5%] Building CXX object CMakeFiles/client_postprocess.dir/src/client_postprocess.cpp.o
 [...]
-[100%] Built target client_decrypt_decode
-15:58:45 [harness] 1: Dataset generation completed (elapsed: 0.4333s)
-15:58:45 [harness] 2: Dataset preprocessing completed (elapsed: 0.1514s)
-15:58:45 [harness] 3: Key Generation completed (elapsed: 0.2111s)
-15:58:45 [harness] 4: Dataset encoding and encryption completed (elapsed: 0.1522s)
-         [harness] Public and evaluation keys size: 517.8K
-         [harness] Encrypted database size: 261.2K
-15:58:46 [harness] 5: (Encrypted) dataset preprocessing completed (elapsed: 0.3696s)
-
-         [harness] Run 1 of 2
-15:58:46 [harness] 6: Query generation completed (elapsed: 0.3635s)
-15:58:46 [harness] 7: Query preprocessing completed (elapsed: 0.017s)
-15:58:46 [harness] 8: Query encryption completed (elapsed: 0.0955s)
-         [harness] Encrypted query size: 257.2K
-15:58:46 [harness] 9: Encrypted computation completed (elapsed: 0.0979s)
-         [harness] Encrypted results size: 261.2K
-15:58:47 [harness] 10: Result decryption completed (elapsed: 0.2023s)
-15:58:47 [harness] 11: Result postprocessing completed (elapsed: 0.1582s)
-         [harness] Wrote expected result to:  /home/aandr/fhe-bench/datasets/medium/expected.txt
-[harness] PASS  (expected=13.89, got=13.889999999042985)
-[total latency] 2.252s
-
-         [harness] Run 2 of 2
-15:58:47 [harness] 6: Query generation completed (elapsed: 0.7585s)
-15:58:48 [harness] 7: Query preprocessing completed (elapsed: 0.071s)
-15:58:48 [harness] 8: Query encryption completed (elapsed: 0.0339s)
-         [harness] Encrypted query size: 257.2K
-15:58:48 [harness] 9: Encrypted computation completed (elapsed: 0.121s)
-         [harness] Encrypted results size: 261.2K
-15:58:48 [harness] 10: Result decryption completed (elapsed: 0.1141s)
-15:58:48 [harness] 11: Result postprocessing completed (elapsed: 0.1326s)
-         [harness] Wrote expected result to:  /home/aandr/fhe-bench/datasets/medium/expected.txt
-[harness] PASS  (expected=123.58, got=123.58000000003665)
-[total latency] 2.5488s
 
 All steps completed for the medium dataset!
 ```
@@ -129,7 +80,6 @@ Each submission to the workload in the FHE benchmarking should have the followin
 | |  ├─ toy/        # each instance-size in in a separate subdirectory
 | |  ├─ small/
 | |  ├─ medium/
-| |  ├─ large/
 | ├─docs/           # Documentation (beyond the top-level README.md)
 | ├─harness/        # Scripts to generate data, run workload, check results
 | ├─build/          # Handle installing dependencies and building the project
@@ -146,13 +96,10 @@ Each submission to the workload in the FHE benchmarking should have the followin
 | |     …
 | |  ├─ medium/
 | |     …
-| |  ├─ large/
-| |     …
 | ├─measurements/   # Holds json files with the results for each run
 | |  ├─ toy/        # each instance-size in in a separate subdirectory
 | |  ├─ small/
 | |  ├─ medium/
-| |  ├─ large/
 ```
 
 ## Description of stages
