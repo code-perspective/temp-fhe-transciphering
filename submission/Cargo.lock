@@ -285,6 +285,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.85"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -510,6 +519,7 @@ dependencies = [
  "auto-base-conv",
  "bincode",
  "chrono",
+ "itertools 0.14.0",
  "rand",
  "serde",
  "tfhe 0.5.4",
@@ -538,7 +548,7 @@ dependencies = [
  "concrete-csprng",
  "concrete-fft",
  "dyn-stack",
- "itertools",
+ "itertools 0.11.0",
  "paste",
  "pulp",
  "rayon",
@@ -558,7 +568,7 @@ dependencies = [
  "concrete-csprng",
  "concrete-fft",
  "dyn-stack",
- "itertools",
+ "itertools 0.11.0",
  "paste",
  "pulp",
  "rand_core 0.6.4",

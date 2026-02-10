@@ -1,41 +1,9 @@
 use std::env;
 use std::fs;
 
+use submission::help_fun::decrypt_decode_lwe_list;
 use submission::help_fun::get_size_string;
 use tfhe::core_crypto::prelude::{Container, ContiguousEntityContainer, LweCiphertext, LweCiphertextList, LweSecretKey, UnsignedInteger, decrypt_lwe_ciphertext};
-
-pub fn decrypt_decode_lwe_list(
-    lwe_sk: &LweSecretKey<Vec<u64>>,
-    ciphertext: &LweCiphertextList<Vec<u64>>,
-) -> Vec<u64> {
-    let delta = 1_u64 << 63;
-    let mut result: Vec<u64> = Vec::new();
-    for c in ciphertext.iter() {
-        result.push(decrypt(&lwe_sk, &c, delta));
-    }
-    result
-}
-
-fn decrypt<C, KeyCont, Scalar>(
-    lwe_sk: &LweSecretKey<KeyCont>,
-    lwe_ctxt: &LweCiphertext<C>,
-    delta: Scalar,
-) -> Scalar
-where
-    Scalar: UnsignedInteger,
-    KeyCont: Container<Element = Scalar>,
-    C: Container<Element = Scalar>,
-{
-    let scaling = lwe_ctxt
-        .ciphertext_modulus()
-        .get_power_of_two_scaling_to_native_torus();
-
-    let decrypted = decrypt_lwe_ciphertext(&lwe_sk, &lwe_ctxt).0;
-    let decrypted = decrypted * scaling;
-    let rounding = (decrypted & (delta >> 1)) << 1;
-    let decoded = (decrypted.wrapping_add(rounding)) / delta;
-    return decoded;
-}
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
@@ -43,7 +11,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("Usage: {} <size>", args[0]);
         std::process::exit(1); 
     }
-    let size = args[1].clone();
+       let size = args[1].clone();
     let io_dir = "io/".to_owned() + get_size_string(size.parse::<usize>()?);
 
     // Load secret key
@@ -61,13 +29,26 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Decrypt and decode
     let decrypted_result = decrypt_decode_lwe_list(&lwe_sk, &lwe_ciphertext_list);
 
-    // Save result to file
+    // Pack 128 bits into 8 u16 values and save one per line (decimal)
+    if decrypted_result.len() % 16 != 0 {
+        return Err("decrypted_result length is not a multiple of 16".into());
+    }
+    let mut packed: Vec<u16> = Vec::with_capacity(decrypted_result.len() / 16);
+    for chunk in decrypted_result.chunks(16) {
+        let mut value: u16 = 0;
+        for &bit in chunk {
+            value = (value << 1) | ((bit as u16) & 1);
+        }
+        packed.push(value);
+    }
+
     let output_path = format!("{}/result.txt", io_dir);
-    let result_str = decrypted_result
+    let mut result_str = packed
         .iter()
         .map(|v| v.to_string())
         .collect::<Vec<_>>()
-        .join("");
+        .join("\n");
+    result_str.push('\n');
     fs::write(&output_path, result_str)?;
 
 

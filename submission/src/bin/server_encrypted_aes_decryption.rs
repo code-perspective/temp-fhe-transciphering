@@ -1,15 +1,15 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::collections::HashMap;
 
 use aligned_vec::ABox;
 use auto_base_conv::{
     byte_array_to_mat, byte_mat_to_array, convert_standard_glwe_keyswitch_key_to_fourier,
     get_he_state_byte, get_he_state_byte_mut, glwe_ciphertext_monic_monomial_div_assign,
     keyswitch_lwe_ciphertext_by_glwe_keyswitch, known_rotate_keyed_lut,
-    lwe_ciphertext_list_add_assign, lwe_msb_bit_to_glev_by_trace_with_preprocessing,
-    switch_scheme, AES_TIGHT, AesParam, AutomorphKey, AutomorphKeySerializable, FftType,
-    FourierGlweKeyswitchKey, GlweKeyswitchKeyOwned,
+    lwe_ciphertext_list_add_assign, lwe_msb_bit_to_glev_by_trace_with_preprocessing, switch_scheme,
+    AesParam, AutomorphKey, AutomorphKeySerializable, FftType, FourierGlweKeyswitchKey,
+    GlweKeyswitchKeyOwned, AES_TIGHT,
 };
 use submission::{
     aes_manager::{StateByteMat, BLOCKSIZE_IN_BIT, BYTESIZE, NUM_COLUMNS, NUM_ROWS},
@@ -188,18 +188,6 @@ where
         }
     }
     he_state
-}
-
-pub fn workload_tiny_1(input: &mut LweCiphertextList<Vec<u64>>) {
-    let mid = input.lwe_ciphertext_count().0 / 2;
-    let (mut left, right) = input.split_at_mut(mid);
-    lwe_ciphertext_list_add_assign(&mut left, right);
-}
-
-pub fn workload_tiny_2(input: &mut LweCiphertextList<Vec<u64>>) {
-    for mut item in input.iter_mut() {
-        lwe_ciphertext_plaintext_add_assign(&mut item, Plaintext(1<<63));
-    }
 }
 
 ///////////////////////////// local helper functions /////////////////////////////
@@ -608,14 +596,12 @@ fn inv_shift_rows(state: &mut StateByteMat) {
     }
 }
 
-
-
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         eprintln!("Usage: {} <size>", args[0]);
         std::process::exit(1);
-    }    
+    }
     let size = args[1].clone();
     let io_dir = "io/".to_owned() + get_size_string(size.parse::<usize>()?);
     let data_dir = "datasets/".to_owned() + get_size_string(size.parse::<usize>()?);
@@ -623,7 +609,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load AES ciphertext from hex file
     let aes_cipher_hex_path = format!("{}/db.hex", data_dir);
     let hex_string = fs::read_to_string(&aes_cipher_hex_path)?.trim().to_string();
-    
+
     let mut aes_cipher: [u8; 16] = [0u8; 16];
     for (i, byte) in aes_cipher.iter_mut().enumerate() {
         let hex_pair = &hex_string[i * 2..i * 2 + 2];
@@ -700,7 +686,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         convert_standard_ggsw_ciphertext_to_fourier(&ggsw, &mut fourier_ggsw);
     }
 
-    let result = aes_to_lwe_trasnciphering(
+    let mut result = aes_to_lwe_trasnciphering(
         &aes_cipher,
         param,
         trans_key,
@@ -713,10 +699,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create output directory and save result
     let ciphertext_download_dir = format!("{}/ciphertext_aes_download", io_dir);
     fs::create_dir_all(&ciphertext_download_dir)?;
-    
+
     let result_path = format!("{}/result.bin", ciphertext_download_dir);
     fs::write(&result_path, bincode::serialize(&result)?)?;
-    
 
     Ok(())
 }

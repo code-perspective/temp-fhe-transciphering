@@ -1,13 +1,10 @@
-use data_struct::AllRdKeys;
-use aes_manager::*;
-use submission::{aes_manager, data_struct::{self, get_0_round_key, get_8_to_1_round_key, get_10_9_round_key}, help_fun::get_size_string};
+use submission::help_fun::get_size_string;
 use std::{collections::HashMap, env};
 use std::fs;
-use std::path::Path;
 
 use aligned_vec::ABox;
-use auto_base_conv::{AES_TIGHT, AesParam, AutomorphKey, AutomorphKeySerializable, FourierGlweKeyswitchKey, GlweKeyswitchKeyOwned, gen_all_auto_keys, generate_scheme_switching_key, keygen_pbs_with_glwe_ds, keygen_pbs_with_glwe_ks};
-use tfhe::core_crypto::{prelude::{ActivatedRandomGenerator, EncryptionRandomGenerator, FourierGgswCiphertextList, FourierLweBootstrapKey, GgswCiphertextList, GlweSecretKey, GlweSecretKeyOwned, LweBootstrapKey, LweBootstrapKeyOwned, LweSecretKeyOwned, SecretRandomGenerator}, seeders::new_seeder};
+use auto_base_conv::{AES_TIGHT, AesParam, AutomorphKey, AutomorphKeySerializable, GlweKeyswitchKeyOwned, gen_all_auto_keys, generate_scheme_switching_key, keygen_pbs_with_glwe_ks};
+use tfhe::core_crypto::{prelude::{ActivatedRandomGenerator, EncryptionRandomGenerator, GgswCiphertextList, GlweSecretKeyOwned, LweBootstrapKeyOwned, LweSecretKeyOwned, SecretRandomGenerator}, seeders::new_seeder};
 use tfhe::core_crypto::fft_impl::fft64::c64;
 
 pub fn generate_fhe_keys(
@@ -58,8 +55,6 @@ pub fn generate_fhe_keys(
         encryption_generator,
     );
     
-    // let fourier_bsk = fourier_bsk.as_view();
-
     let ss_key = generate_scheme_switching_key(
         &glwe_sk,
         ss_base_log,
@@ -82,79 +77,6 @@ pub fn generate_fhe_keys(
     (lwe_sk, glwe_sk, bsk, ksk, auto_keys, ss_key)
 }
 
-// pub fn generate_fhe_keys(
-//     param: &AesParam<u64>,
-//     secret_generator: &mut SecretRandomGenerator<ActivatedRandomGenerator>,
-//     encryption_generator: &mut EncryptionRandomGenerator<ActivatedRandomGenerator>,
-// ) -> (
-//     LweSecretKeyOwned<u64>,
-//     GlweSecretKeyOwned<u64>,
-//     FourierLweBootstrapKey<ABox<[c64]>>,
-//     FourierGlweKeyswitchKey<ABox<[c64]>>,
-//     HashMap<usize, AutomorphKey<ABox<[c64]>>>,
-//     FourierGgswCiphertextList<Vec<c64>>,
-// ) {
-//     let lwe_dimension = param.lwe_dimension();
-//     let lwe_modular_std_dev = param.lwe_modular_std_dev();
-//     let glwe_dimension = param.glwe_dimension();
-//     let polynomial_size = param.polynomial_size();
-//     let glwe_modular_std_dev = param.glwe_modular_std_dev();
-//     let pbs_base_log = param.pbs_base_log();
-//     let pbs_level = param.pbs_level();
-//     let glwe_ds_base_log = param.glwe_ds_base_log();
-//     let glwe_ds_level = param.glwe_ds_level();
-//     let common_polynomial_size = param.common_polynomial_size();
-//     let fft_type_ds = param.fft_type_ds();
-//     let auto_base_log = param.auto_base_log();
-//     let auto_level = param.auto_level();
-//     let fft_type_auto = param.fft_type_auto();
-//     let ss_base_log = param.ss_base_log();
-//     let ss_level = param.ss_level();
-//     let ciphertext_modulus = param.ciphertext_modulus();
-
-//     // Generate keys
-//     let (lwe_sk, glwe_sk, _lwe_sk_after_ks, fourier_bsk, fourier_ksk) = keygen_pbs_with_glwe_ds(
-//         lwe_dimension,
-//         glwe_dimension,
-//         polynomial_size,
-//         lwe_modular_std_dev,
-//         glwe_modular_std_dev,
-//         pbs_base_log,
-//         pbs_level,
-//         glwe_ds_base_log,
-//         glwe_ds_level,
-//         common_polynomial_size,
-//         fft_type_ds,
-//         ciphertext_modulus,
-//         secret_generator,
-//         encryption_generator,
-//     );
-    
-//     // let fourier_bsk = fourier_bsk.as_view();
-
-//     let ss_key = generate_scheme_switching_key(
-//         &glwe_sk,
-//         ss_base_log,
-//         ss_level,
-//         glwe_modular_std_dev,
-//         ciphertext_modulus,
-//         encryption_generator,
-//     );
-//     // let ss_key = ss_key.as_view();
-
-//     let auto_keys = gen_all_auto_keys(
-//         auto_base_log,
-//         auto_level,
-//         fft_type_auto,
-//         &glwe_sk,
-//         glwe_modular_std_dev,
-//         encryption_generator,
-//     );
-
-//     (lwe_sk, glwe_sk, fourier_bsk, fourier_ksk, auto_keys, ss_key)
-// }
-
-
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
@@ -164,17 +86,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let size = args[1].clone();
     let io_dir = "io/".to_owned() + get_size_string(size.parse::<usize>()?);
-    // let data_dir = "datasets/".to_owned() + get_size_string(size.parse::<usize>()?);
-    
-    // let aes_key_path = format!("{}/aes_key.hex", data_dir);
-    // let hex_string = fs::read_to_string(&aes_key_path)?.trim().to_string();
-    
-    // let mut aes_key: [u8; 16] = [0u8; 16];
-    // for (i, byte) in aes_key.iter_mut().enumerate() {
-    //     let hex_pair = &hex_string[i*2..i*2+2];
-    //     *byte = u8::from_str_radix(hex_pair, 16)?;
-    // }
-    
+   
     let param = &*AES_TIGHT;
     let mut boxed_seeder = new_seeder();
     let seeder = boxed_seeder.as_mut();
