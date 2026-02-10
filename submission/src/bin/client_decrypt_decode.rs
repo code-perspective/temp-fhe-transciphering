@@ -28,28 +28,15 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Decrypt and decode
     let decrypted_result = decrypt_decode_lwe_list(&lwe_sk, &lwe_ciphertext_list);
+    // intermediate output
+    let intermediate_output_path = format!("{}/intermediate", io_dir);
+    fs::create_dir_all(&intermediate_output_path)?;
+    let output_path = format!("{}/decoded_result.txt", intermediate_output_path);
+    
+    let bytes = bincode::serialize(&decrypted_result)?;
+    fs::write(&output_path, bytes)?;
 
-    // Pack 128 bits into 8 u16 values and save one per line (decimal)
-    if decrypted_result.len() % 16 != 0 {
-        return Err("decrypted_result length is not a multiple of 16".into());
-    }
-    let mut packed: Vec<u16> = Vec::with_capacity(decrypted_result.len() / 16);
-    for chunk in decrypted_result.chunks(16) {
-        let mut value: u16 = 0;
-        for &bit in chunk {
-            value = (value << 1) | ((bit as u16) & 1);
-        }
-        packed.push(value);
-    }
 
-    let output_path = format!("{}/result.txt", io_dir);
-    let mut result_str = packed
-        .iter()
-        .map(|v| v.to_string())
-        .collect::<Vec<_>>()
-        .join("\n");
-    result_str.push('\n');
-    fs::write(&output_path, result_str)?;
 
 
     Ok(())
