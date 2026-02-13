@@ -126,7 +126,7 @@ def main():
             str(aes_expected_file), str(aes_result_file)], check=False)
     
     # 14. Verify the final result
-    expected_file = params.datadir() / "expected.txt"
+    expected_file = params.datadir() / "max_value.txt"
     result_file = io_dir / "result.txt"
 
     if not result_file.exists():

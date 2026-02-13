@@ -24,7 +24,7 @@ def main():
     DATASET_ENC_PATH = params.datadir() / f"db.hex"
     AES_KEY_PATH = params.datadir() / f"aes_key.hex"
     IV_PATH = params.datadir() / f"aes_iv.hex"
-    OUT_PATH = params.datadir() / f"expected.txt"
+    OUT_PATH = params.datadir() / f"expected_aes.txt"
     MAX_PATH = params.datadir() / f"max_value.txt"
     IP_PATH = params.datadir() / f"inner_product.txt"
 
