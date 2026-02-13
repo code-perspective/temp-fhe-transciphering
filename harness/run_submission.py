@@ -23,7 +23,7 @@ def main():
     
     # 0. Prepare running
     # Get the arguments
-    size, params, seed, num_runs, clrtxt = utils.parse_submission_arguments('Run the add-two-values FHE benchmark.')
+    size, params, seed, num_runs, clrtxt, mini_workload = utils.parse_submission_arguments('Run the add-two-values FHE benchmark.')
     test = instance_name(size)
     print(f"\n[harness] Running submission for {test} dataset")
 
@@ -127,6 +127,8 @@ def main():
     
     # 14. Verify the final result
     expected_file = params.datadir() / "max_value.txt"
+    if mini_workload == 1:
+        expected_file = params.datadir() / "inner_product.txt"
     result_file = io_dir / "result.txt"
 
     if not result_file.exists():

@@ -20,7 +20,7 @@ def main():
     Generate random AES key of fixed 128-bit size (for the moment), store it, and
     encrypt the dataset messages using that key.
     """
-    __, params, seed, __, __ = parse_submission_arguments('Generate dataset for FHE benchmark.')
+    __, params, seed, __, __, __ = parse_submission_arguments('Generate dataset for FHE benchmark.')
     DATASET_PATH = params.datadir() / f"db.txt"
     AES_KEY_PATH = params.datadir() / f"aes_key.hex"
     AES_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
