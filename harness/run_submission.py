@@ -85,13 +85,13 @@ def main():
     db_size = utils.log_size(io_dir / "ciphertexts_upload", "Encrypted aes-encrypted dataset")
 
     # 6. Server-side: Preprocess the (encrypted) dataset using exec_dir/server_preprocess_dataset
-    subprocess.run(exec_dir/"server_preprocess_dataset", check=True)
+    subprocess.run([exec_dir/"server_preprocess_dataset", str(size)], check=True)
     utils.log_step(6, "(Encrypted) dataset preprocessing")    
 
     # 7. Server side: Run aes_decryption 
     subprocess.run([exec_dir/"server_encrypted_aes_decryption", str(size)], check=True)
     utils.log_step(7, "Encrypted aes decryption")
-    utils.log_size(io_dir / "ciphertexts_download", "Encrypted results")
+    utils.log_size(io_dir / "ciphertext_aes_download", "Encrypted results")
 
     # 8. Server side: Run the encrypted processing run exec_dir/server_encrypted_compute
     subprocess.run([exec_dir/"server_encrypted_compute", str(size)], check=True)
