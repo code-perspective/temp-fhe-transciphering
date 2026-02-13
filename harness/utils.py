@@ -27,7 +27,7 @@ _timestampsStr = {}
 # Global variable to store measured sizes
 _bandwidth = {}
 
-def parse_submission_arguments(workload: str) -> Tuple[int, InstanceParams, int, int, int]:
+def parse_submission_arguments(workload: str) -> Tuple[int, InstanceParams, int, int, int, int]:
     """
     Get the arguments of the submission. Populate arguments as needed for the workload.
     """
@@ -41,16 +41,19 @@ def parse_submission_arguments(workload: str) -> Tuple[int, InstanceParams, int,
                         help='Random seed for dataset and query generation')
     parser.add_argument('--clrtxt', type=int,
                         help='Specify with 1 if to rerun the cleartext computation')
+    parser.add_argument('--mini_workload', type=int, default=0,
+                        help='Specify 0 for mini workload = max and 1 for mini workload = dot product.')
 
     args = parser.parse_args()
     size = args.size
     seed = args.seed
     num_runs = args.num_runs
     clrtxt = args.clrtxt
+    mini_workload = args.mini_workload
 
     # Use params.py to get instance parameters
     params = InstanceParams(size)
-    return size, params, seed, num_runs, clrtxt
+    return size, params, seed, num_runs, clrtxt, mini_workload
 
 def ensure_directories(rootdir: Path):
     """ Check that the current directory has sub-directories

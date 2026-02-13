@@ -28,14 +28,13 @@ def main():
     result_file   = Path(sys.argv[2])
 
     try:
-        exp = float(expected_file.read_text().strip())
-        res = float(result_file.read_text().strip())
+        exp = list(map(int, expected_file.read_text().split()))
+        res = list(map(int, result_file.read_text().split()))
     except Exception as e:
         print(f"[harness] failed to read files: {e}")
         sys.exit(1)
 
-    EPS = 1e-5                 # tolerance for doubles
-    if abs(exp - res) <= EPS:
+    if exp == res:
         print(f"[harness] PASS  (expected={exp}, got={res})")
         sys.exit(0)
     else:
