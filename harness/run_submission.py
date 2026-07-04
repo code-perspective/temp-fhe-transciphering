@@ -30,8 +30,8 @@ def main():
     # Ensure the required directories exist
     utils.ensure_directories(params.rootdir)
 
-    # # Build the submission if not built already
-    # utils.build_submission(params.rootdir/"scripts")
+    # Build the submission if not built already
+    utils.build_submission(params.rootdir/"scripts")
 
     # The harness scripts are in the 'harness' directory,
     # the executables are in the directory submission/build
