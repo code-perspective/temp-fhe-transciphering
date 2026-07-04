@@ -13,6 +13,31 @@ verify_aes_decryption.py - correctness oracle for AES decryptions
 import sys
 from pathlib import Path
 
+def find_mismatches(list1, list2):
+    """
+    Compares two lists of integers and returns a list of tuples 
+    containing the (index, value_from_list1, value_from_list2) where they differ.
+    """
+    mismatches = []
+    
+    # Determine the minimum length to avoid index out of bounds
+    min_len = min(len(list1), len(list2))
+    
+    # Compare elements up to the length of the shorter list
+    for i in range(min_len):
+        if list1[i] != list2[i]:
+            mismatches.append((i, list1[i], list2[i]))
+            
+    # If list1 is longer, add the remaining elements
+    for i in range(min_len, len(list1)):
+        mismatches.append((i, list1[i], None))
+        
+    # If list2 is longer, add the remaining elements
+    for i in range(min_len, len(list2)):
+        mismatches.append((i, None, list2[i]))
+        
+    return mismatches
+
 def main():
 
     """
@@ -35,10 +60,11 @@ def main():
         sys.exit(1)
 
     if exp == res:
-        print(f"[harness] PASS AES Decryption  (expected={exp}, got={res})")
+        print(f"[harness] PASS AES Decryption")
         sys.exit(0)
     else:
-        print(f"[harness] FAIL AES Decryption  (expected={exp}, got={res})")
+        mismatches = find_mismatches(exp, res)
+        print(f"[harness] FAIL AES Decryption  (find_mismatches): {mismatches}")
         sys.exit(1)
 
 if __name__ == "__main__":
