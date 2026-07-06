@@ -853,7 +853,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let result_path = format!("{}/result.bin", ciphertext_download_dir);
         fs::write(&result_path, bincode::serialize(&result)?)?;
-    } else if size == "1" || size == "2" {
+    } else if size == "1" || size == "2" || size == "3" {
         let trans_key: AllRdKeys2 = bincode::deserialize(&trans_key_bytes)?;
 
         // Load AES ciphertext from hex file
@@ -937,7 +937,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let result_path = format!("{}/result.bin", ciphertext_download_dir);
         fs::write(&result_path, bincode::serialize(&merged_result)?)?;
     } else {
-        return Err(format!("Invalid size argument: {}. Expected 0, 1, or 2.", size).into());
+        return Err(format!("Invalid size argument: {}. Expected 0, 1, 2, or 3.", size).into());
     }
 
     Ok(())

@@ -142,7 +142,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         fs::write(&trans_key_path, bincode::serialize(&trans_key)?)?;
 
         println!("Transciphering keys saved to {}", ciphertext_upload_dir);
-    } else if size == "1" || size == "2" {
+    } else if size == "1" || size == "2" || size == "3" {
         for (i, byte) in aes_key.iter_mut().enumerate() {
             let hex_pair = &hex_string[i * 2..i * 2 + 2];
             *byte = u8::from_str_radix(hex_pair, 16)?;
